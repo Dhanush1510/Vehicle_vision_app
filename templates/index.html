@@ -1,0 +1,116 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Vision Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Vehicle Vision Pro</h1>
+            <p class="subtitle">Advanced Vehicle Detection & Analysis</p>
+        </header>
+
+        <div class="upload-section">
+            <form id="uploadForm" method="POST" enctype="multipart/form-data" action="/">
+                <div class="file-upload">
+                    <input type="file" name="video" id="videoInput" accept="video/*" required>
+                    <label for="videoInput">
+                        <div class="upload-icon">📁</div>
+                        <span>Choose a video file or drag & drop here</span>
+                    </label>
+                </div>
+                <button type="submit" class="upload-btn">Process Video</button>
+            </form>
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="progress-text">Processing video...</div>
+            </div>
+        </div>
+
+        {% if show_video %}
+        <div class="video-container">
+            <div class="video-row">
+                <div class="video-box">
+                    <h2>LIDAR View</h2>
+                    <img src="{{ url_for('video_feed_lidar') }}" alt="LIDAR Video" />
+                </div>
+                <div class="video-box">
+                    <h2>Thermal View</h2>
+                    <img src="{{ url_for('video_feed_thermal') }}" alt="Thermal Video" />
+                </div>
+            </div>
+            <div class="video-row single">
+                <div class="video-box">
+                    <h2>Dehazed View</h2>
+                    <img src="{{ url_for('video_feed_dehaze') }}" alt="Dehazed Video" />
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progress = document.getElementById('progress');
+            const fileInput = document.getElementById('videoInput');
+            
+            if (fileInput.files.length > 0) {
+                progressContainer.classList.add('visible');
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                    } else {
+                        width++;
+                        progress.style.width = width + '%';
+                    }
+                }, 50);
+            }
+        });
+
+        const fileInput = document.getElementById('videoInput');
+        const dropZone = fileInput.nextElementSibling;
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#2ecc71';
+            dropZone.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.backgroundColor = '';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.backgroundColor = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('video/')) {
+                fileInput.files = files;
+                const label = dropZone.querySelector('span');
+                label.textContent = files[0].name;
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            const label = this.nextElementSibling.querySelector('span');
+            label.textContent = fileName || 'Choose a video file or drag & drop here';
+        });
+    </script>
+</body>
+</html>
+
